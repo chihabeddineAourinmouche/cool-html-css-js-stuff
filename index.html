@@ -61,6 +61,13 @@
 </head>
 
 <body>
+    <!-- CONSTANTS -->
+     <script>
+        const imageViewerSize = 250
+        const hueMax = 200
+        const imageNumber = 330
+        const imageType = "png"
+     </script>
     <!-- STATE -->
     <script>
         /*
@@ -70,7 +77,7 @@
             - images: AN ARRAY OF IMAGE PATHS
         */
         const state = { idx: 0, zoom: 1, images: [] }
-        for (let i = 1; i < 330; i++) state.images.push(`./images/${i}.png`)
+        for (let i = 1; i < imageNumber; i++) state.images.push(`./images/${i}.${imageType}`)
     </script>
 
     <!-- COMPONENT CONTAINER -->
@@ -100,7 +107,7 @@
                     const imageIndex = Math.floor((mouseX / totalWidth) * state.images.length)
                     if (imageIndex > 0 && imageIndex < state.images.length && imageIndex !== state.idx) {
                         state.idx = imageIndex
-                        const hue = imageIndex * 200 / state.images.length
+                        const hue = imageIndex * hueMax / state.images.length
                         document.body.style.backgroundColor = `hsl(${hue}, 30%, 50%)`
                     }
                     // VERTICAL (ZOOM)
@@ -149,7 +156,7 @@
     <script>
         const ImageViewer = (parent) => {
             const update = () => {
-                const backgroundPositionsX = state.images.map((_, index) => (index - state.idx) * 250)
+                const backgroundPositionsX = state.images.map((_, index) => (index - state.idx) * imageViewerSize)
                 img.style.backgroundPosition = backgroundPositionsX.map(position => `${position}px 0px`).join(",")
                 img.style.transform = `scale(${state.zoom})`
             }
@@ -157,6 +164,7 @@
             img.classList.add("image__viewer")
             img.style.backgroundImage = state.images.map(image => `url(${image})`).join(",")
             img.style.backgroundRepeat = "no-repeat"
+            update()
             parent.appendChild(img)
             return { img, update }
         }
