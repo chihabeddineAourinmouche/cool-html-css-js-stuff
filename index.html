@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fun</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Verdana, Geneva, Tahoma, sans-serif;
+        }
+
+        body {
+            width: 100dvw;
+            height: 100dvh;
+            background-color: hsl(0, 30%, 50%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 50px;
+            user-select: none;
+            transition: background-color .2s ease-in-out;
+        }
+
+        .container {
+            background-color: rgba(255, 255, 255, .1);
+            min-width: 360px;
+            min-height: 360px;
+            border-radius: 38px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            padding: 20px;
+            color: #ffffff;
+            font-size: 2em;
+            cursor: grab;
+        }
+
+        .image__viewer__container {
+            width: 250px;
+            height: 250px;
+            color: #001122;
+            display: flex;
+            align-items: center;
+            border-radius: 38px;
+            overflow: hidden;
+        }
+
+        .image__viewer {
+            width: 100%;
+            height: 100%;
+            background-size: 100%;
+            flex-shrink: 0;
+            transition: transform .2s ease-in-out;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- STATE -->
+    <script>
+        const state = { src: 0, zoom: 1, images: [] }
+        for (let i = 1; i < 330; i++) state.images.push(`./images/${i}.png`)
+    </script>
+
+    <!-- COMPONENT CONTAINER -->
+    <script>
+        const Container = (parent) => {
+            const container = document.createElement("div")
+            container.classList.add("container")
+            parent.appendChild(container)
+            container.addEventListener("mousemove", (event) => {
+                if (event.buttons === 1) {
+                    const imgRect = container.getBoundingClientRect()
+                    // HORIZONTAL (ROTATION)
+                    const mouseX = event.clientX - imgRect.left
+                    const totalWidth = imgRect.width
+                    const imageIndex = Math.floor((mouseX / totalWidth) * state.images.length)
+                    if (imageIndex > 0 && imageIndex < state.images.length && imageIndex !== state.src) {
+                        state.src = imageIndex
+                        const hue = imageIndex * 200 / state.images.length
+                        document.body.style.backgroundColor = `hsl(${hue}, 30%, 50%)`
+                    }
+                    // VERTICAL (ZOOM)
+                    const mouseY = event.clientY - imgRect.top
+                    const totalHeight = imgRect.height
+                    if (mouseY < totalHeight / 2) {
+                        state.zoom = 2
+                    } else {
+                        state.zoom = 1
+                    }
+                    window.dispatchEvent(new CustomEvent("reset-image-viewer-container"))
+                }
+            })
+            container.addEventListener("mouseup", (event) => {
+                state.zoom = 1
+                window.dispatchEvent(new CustomEvent("reset-image-viewer-container"))
+            })
+            container.addEventListener("mouseleave", (event) => {
+                state.zoom = 1
+                window.dispatchEvent(new CustomEvent("reset-image-viewer-container"))
+            })
+            return container
+        }
+    </script>
+
+    <!-- COMPONENT IMAGE VIEWER CONTAINER -->
+    <script>
+        const ImageViewerContainer = (parent) => {
+            const imageViewerContainer = document.createElement("div")
+            imageViewerContainer.classList.add("image__viewer__container")
+            parent.appendChild(imageViewerContainer)
+            return imageViewerContainer
+        }
+    </script>
+
+    <!-- COMPONENT IMAGE VIEWER -->
+    <script>
+        const ImageViewer = (parent) => {
+            const update = () => {
+                const backgroundPositionsX = state.images.map((_, index) => (index - state.src) * 250)
+                img.style.backgroundPosition = backgroundPositionsX.map(position => `${position}px 0px`).join(",")
+                img.style.transform = `scale(${state.zoom})`
+            }
+            const img = document.createElement("div")
+            img.classList.add("image__viewer")
+            img.style.backgroundImage = state.images.map(image => `url(${image})`).join(",")
+            img.style.backgroundRepeat = "no-repeat"
+            parent.appendChild(img)
+            return { img, update}
+        }
+    </script>
+
+    <!-- MAIN -->
+    <script>
+        const body = document.body
+
+        const container = Container(body)
+        const imageViewerContainer = ImageViewerContainer(container)
+        const imageViewer = ImageViewer(imageViewerContainer)
+
+        // EVENTS
+        window.addEventListener("reset-image-viewer-container", () => {
+            imageViewer.update()
+        })
+    </script>
+</body>
+
+</html>
